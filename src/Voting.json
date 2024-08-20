@@ -25,6 +25,32 @@
       {
         "indexed": false,
         "internalType": "uint256",
+        "name": "sessionId",
+        "type": "uint256"
+      }
+    ],
+    "name": "NewSessionStarted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "sessionId",
+        "type": "uint256"
+      }
+    ],
+    "name": "SessionReset",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
         "name": "candidateId",
         "type": "uint256"
       },
@@ -38,7 +64,6 @@
     "name": "VoteReceived",
     "type": "event"
   },
-  { "anonymous": false, "inputs": [], "name": "VotesReset", "type": "event" },
   {
     "inputs": [{ "internalType": "string", "name": "name", "type": "string" }],
     "name": "addCandidate",
@@ -66,6 +91,13 @@
   },
   {
     "inputs": [],
+    "name": "currentSession",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getAllCandidates",
     "outputs": [
       {
@@ -83,7 +115,10 @@
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "inputs": [
+      { "internalType": "address", "name": "", "type": "address" },
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
     "name": "hasVoted",
     "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
     "stateMutability": "view",

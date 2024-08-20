@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import Onboard from '@web3-onboard/core';
 import injectedModule from '@web3-onboard/injected-wallets';
 import { ethers } from 'ethers';
-import VotingAbi from './Voting.json'; 
+import VotingAbi from './Voting.json';
 import './App.css';
 
-const MAINNET_RPC_URL = `https://mainnet.infura.io/v3/${process.env.REACT_APP_INFURA_KEY}`;
+const SEPOLIA_RPC_URL = `https://sepolia.infura.io/v3/${process.env.REACT_APP_INFURA_KEY}`;
 
 const injected = injectedModule();
 
@@ -13,16 +13,10 @@ const onboard = Onboard({
   wallets: [injected],
   chains: [
     {
-      id: '0x1',
+      id: '0xaa36a7',
       token: 'ETH',
-      label: 'Ethereum Mainnet',
-      rpcUrl: MAINNET_RPC_URL
-    },
-    {
-      id: '0x2105',
-      token: 'ETH',
-      label: 'Base',
-      rpcUrl: 'https://mainnet.base.org'
+      label: 'Sepolia',
+      rpcUrl: SEPOLIA_RPC_URL
     }
   ]
 });
@@ -32,6 +26,7 @@ function App() {
   const [candidates, setCandidates] = useState<any[]>([]);
   const [newCandidateName, setNewCandidateName] = useState('');
   const [votingContract, setVotingContract] = useState<ethers.Contract | null>(null);
+  const [loading, setLoading] = useState<boolean>(false); // Track loading state
 
   useEffect(() => {
     const initWalletConnection = async () => {
@@ -53,21 +48,28 @@ function App() {
 
   const fetchCandidates = async (contract: ethers.Contract) => {
     try {
+      setLoading(true);
       const candidatesList = await contract.getAllCandidates();
       setCandidates(candidatesList);
     } catch (error) {
       console.error("Failed to fetch candidates", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const vote = async (candidateId: number) => {
     if (votingContract) {
       try {
+        setLoading(true);
+        console.log("candidateId", candidateId)
         const tx = await votingContract.vote(candidateId);
-        await tx.wait();
+         await tx.wait();
         await fetchCandidates(votingContract);
       } catch (error) {
         console.error("Failed to vote", error);
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -75,12 +77,15 @@ function App() {
   const addCandidate = async () => {
     if (votingContract && newCandidateName) {
       try {
+        setLoading(true);
         const tx = await votingContract.addCandidate(newCandidateName);
         await tx.wait();
         setNewCandidateName('');
         await fetchCandidates(votingContract);
       } catch (error) {
         console.error("Failed to add candidate", error);
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -88,11 +93,14 @@ function App() {
   const resetVotes = async () => {
     if (votingContract) {
       try {
+        setLoading(true);
         const tx = await votingContract.resetVotes();
         await tx.wait();
         await fetchCandidates(votingContract);
       } catch (error) {
         console.error("Failed to reset votes", error);
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -128,10 +136,11 @@ function App() {
             borderRadius: '5px', 
             border: '1px solid #ccc'
           }}
+          disabled={loading} 
         />
         <button 
           onClick={addCandidate} 
-          disabled={wallets.length === 0} 
+          disabled={wallets.length === 0 || loading}
           style={{
             backgroundColor: '#2196F3', 
             color: 'white', 
@@ -144,6 +153,9 @@ function App() {
           Add Candidate
         </button>
       </div>
+
+      {loading && <p>Loading...</p>}
+
 
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {candidates.map((candidate) => (
@@ -160,7 +172,7 @@ function App() {
             <span style={{ fontWeight: 'bold' }}>{candidate.name}</span> - Votes: {candidate.voteCount.toString()}
             <button 
               onClick={() => vote(candidate.id)} 
-              disabled={wallets.length === 0} 
+              disabled={wallets.length === 0 || loading}
               style={{
                 backgroundColor: '#FF5722', 
                 color: 'white', 
@@ -179,7 +191,7 @@ function App() {
 
       <button 
         onClick={resetVotes} 
-        disabled={wallets.length === 0} 
+        disabled={wallets.length === 0 || loading}
         style={{
           backgroundColor: '#f44336', 
           color: 'white', 
@@ -190,8 +202,9 @@ function App() {
           marginTop: '20px'
         }}
       >
-        Reset Votes
+        Reset Voting Session
       </button>
+      <p><b><i>You can only vote once in a session, connect another user/wallet and to vote in the same session</i></b></p>
     </div>
   );
 }
