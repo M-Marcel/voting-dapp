@@ -1,5 +1,4 @@
-# Voting d
-app assessment by Chainsatlas
+# Voting dapp assessment by Chainsatlas
 
 
 # Getting Started with Create React App
